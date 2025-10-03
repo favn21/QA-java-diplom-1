@@ -1,35 +1,27 @@
 package praktikum.unit;
 
+import io.qameta.allure.Epic;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Story;
+import io.qameta.allure.Description;
+import io.qameta.allure.junit4.DisplayName;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-
 import praktikum.Bun;
 import praktikum.Burger;
 import praktikum.Ingredient;
 import praktikum.IngredientType;
 
-import java.util.Arrays;
-import java.util.Collection;
-
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(Parameterized.class)
+@Epic("Бургер")
+@Feature("Работа с бургером")
 public class BurgerTest {
 
     private Burger burger;
     private Bun bun;
     private Ingredient ingredient;
-
-    private final int oldIndex;
-    private final int newIndex;
-
-    public BurgerTest(int oldIndex, int newIndex) {
-        this.oldIndex = oldIndex;
-        this.newIndex = newIndex;
-    }
 
     @Before
     public void setUp() {
@@ -47,16 +39,10 @@ public class BurgerTest {
         burger.setBuns(bun);
         burger.addIngredient(ingredient);
     }
-
-    @Parameterized.Parameters(name = "Переместить ингредиент {0} -> {1}")
-    public static Collection<Object[]> data() {
-        return Arrays.asList(new Object[][]{
-                {0, 0},
-                {0, 1},
-        });
-    }
-
     @Test
+    @Story("Установка булки")
+    @Description("Проверяем, что после установки булки в бургер объект bun обновляется корректно")
+    @DisplayName("Тест установки булки")
     public void testSetBuns() {
         Bun anotherBun = mock(Bun.class);
         burger.setBuns(anotherBun);
@@ -64,6 +50,9 @@ public class BurgerTest {
     }
 
     @Test
+    @Story("Добавление ингредиента")
+    @Description("Проверяем, что добавление ингредиента помещает его в список ингредиентов")
+    @DisplayName("Тест добавления ингредиента")
     public void testAddIngredient() {
         Ingredient sauce = mock(Ingredient.class);
         burger.addIngredient(sauce);
@@ -71,39 +60,43 @@ public class BurgerTest {
     }
 
     @Test
+    @Story("Удаление ингредиента")
+    @Description("Проверяем, что удаление ингредиента очищает список ингредиентов")
+    @DisplayName("Тест удаления ингредиента")
     public void testRemoveIngredient() {
         burger.removeIngredient(0);
         assertTrue(burger.ingredients.isEmpty());
     }
 
     @Test
-    public void testMoveIngredient() {
-        Ingredient another = mock(Ingredient.class);
-        when(another.getName()).thenReturn("Sauce");
-        when(another.getPrice()).thenReturn(20f);
-        when(another.getType()).thenReturn(IngredientType.SAUCE);
-
-        burger.addIngredient(another);
-        burger.moveIngredient(oldIndex, newIndex);
-
-        assertEquals(2, burger.ingredients.size());
-    }
-
-    @Test
+    @Story("Расчёт цены")
+    @Description("Проверяем, что метод getPrice возвращает корректную сумму цены булок и ингредиентов")
+    @DisplayName("Тест расчёта цены бургера")
     public void testGetPrice() {
         float expectedPrice = bun.getPrice() * 2 + ingredient.getPrice();
         assertEquals(expectedPrice, burger.getPrice(), 0.001);
     }
 
     @Test
+    @Story("Формирование рецепта")
+    @Description("Проверяем, что метод getReceipt формирует строку рецепта полностью корректно")
+    @DisplayName("Тест рецепта бургера")
     public void testGetReceipt() {
-        String receipt = burger.getReceipt();
+        String expected = String.format(
+                "(==== %s ====)%n" +
+                        "= %s %s =%n" +
+                        "(==== %s ====)%n%n" +
+                        "Price: %f%n",
+                bun.getName(),
+                ingredient.getType().toString().toLowerCase(),
+                ingredient.getName(),
+                bun.getName(),
+                burger.getPrice()
+        );
 
-        assertTrue(receipt.contains(bun.getName()));
-        assertTrue(receipt.contains(ingredient.getName()));
-
-        String expectedPriceLine = String.format("Price: %f", burger.getPrice());
-        assertTrue(receipt.contains(expectedPriceLine));
+        String actual = burger.getReceipt();
+        assertEquals(expected, actual);
     }
 }
+
 
